@@ -5,7 +5,8 @@ namespace CampusGuideWSG.Services;
 
 public interface IModeratorService
 {
-    ModeratorDto Add(ModeratorDto dto);
+    (string token, DateTime expiresAt) Register(ModeratorDto dto);
+    (string token, DateTime expiresAt) Login(LoginDto dto);
     void Remove(int id);
     ModeratorDto Update(ModeratorDto dto);
     ModeratorDto GetById(int id);

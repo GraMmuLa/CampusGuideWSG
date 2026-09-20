@@ -1,6 +1,9 @@
 using CampusGuideWSG.DTO;
 using CampusGuideWSG.Exceptions;
+using CampusGuideWSG.Helpers;
 using CampusGuideWSG.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusGuideWSG.Controllers;
@@ -17,6 +20,19 @@ public class ModeratorsController : ControllerBase
     public ModeratorsController(IModeratorService service)
     {
         _service = service;
+    }
+
+    private void SetJwtCookie(string token, DateTime expiresAt)
+    {
+        CookieOptions cookieOptions = new()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = expiresAt
+        };
+
+        Response.Cookies.Append("jwt-token", token, cookieOptions);
     }
 
     /// <summary>
@@ -75,25 +91,59 @@ public class ModeratorsController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new moderator.
+    /// Registers a new moderator.
     /// </summary>
-    /// <param name="dto">Moderator DTO to create object</param>
-    /// <returns>Created moderator</returns>
-    [HttpPost]
+    /// <param name="dto">Moderator DTO to register object</param>
+    /// <returns>JWT Token and expiration time</returns>
+    [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public ActionResult<ModeratorDto> Create(ModeratorDto dto)
+    public ActionResult<(string token, DateTime expiresAt)> Register(ModeratorDto dto)
     {
         try
         {
-            ModeratorDto created = _service.Add(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            (string token, DateTime expiresAt) = _service.Register(dto);
+
+            SetJwtCookie(token, expiresAt);
+
+            return StatusCode(StatusCodes.Status201Created, new
+            {
+                Message = "User registered Successfully"
+            });
         }
         catch(UniquePropertyException ex)
         {
             return Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
+                Title = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Logins a new moderator.
+    /// </summary>
+    /// <param name="dto">Login DTO to login object</param>
+    /// <returns>JWT Token and expiration time</returns>
+    [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public ActionResult<(string token, DateTime expiresAt)> Login(LoginDto dto)
+    {
+        try
+        {
+            (string token, DateTime expiresAt) = _service.Login(dto);
+
+            SetJwtCookie(token, expiresAt);
+
+            return Ok();
+        }
+        catch(AuthenticationFailureException ex)
+        {
+            return Unauthorized(new ProblemDetails
+            {
+                Status = StatusCodes.Status401Unauthorized,
                 Title = ex.Message
             });
         }

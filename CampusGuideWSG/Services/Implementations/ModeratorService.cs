@@ -1,9 +1,11 @@
+using BCrypt.Net;
 using CampusGuideWSG.DTO;
 using CampusGuideWSG.Exceptions;
 using CampusGuideWSG.Helpers;
 using CampusGuideWSG.Models;
 using CampusGuideWSG.Repositories;
 using CampusGuideWSG.Repositories.Implementations;
+using Microsoft.AspNetCore.Authentication;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,28 +14,39 @@ namespace CampusGuideWSG.Services.Implementations;
 public class ModeratorService : IModeratorService
 {
     private readonly IModeratorRepository _moderatorRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IModeratorBuildingRepository _moderatorBuildingRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     public ModeratorService(IModeratorRepository repository,
-        IModeratorBuildingRepository moderatorBuildingRepository, IUnitOfWork unitOfWork)
+        IRoleRepository roleRepository,
+        IModeratorBuildingRepository moderatorBuildingRepository,
+        IUnitOfWork unitOfWork,
+        IJwtTokenGenerator jwtTokenGenerator)
     {
         _moderatorRepository = repository;
+        _roleRepository = roleRepository;
         _moderatorBuildingRepository = moderatorBuildingRepository;
         _unitOfWork = unitOfWork;
+        _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public ModeratorDto Add(ModeratorDto dto)
+    public (string token, DateTime expiresAt) Register(ModeratorDto dto)
     {
         Moderator model = ModeratorDto.ToModel(dto)!;
 
+        if (_moderatorRepository.GetById(model.Id) is not null)
+            throw new UniquePropertyException("Moderator with this id already exists");
+        if (_moderatorRepository.GetByUsername(model.Username) is not null)
+            throw new UniquePropertyException("Moderator with this username already exists");
+
+        model.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
+        model.Role = _roleRepository.GetByName("Moderator") ??
+            throw new NotFoundException("Role not found");
+
         _unitOfWork.Execute(() =>
         {
-            if (_moderatorRepository.GetById(model.Id) is not null)
-                throw new UniquePropertyException("Moderator with this id already exists");
-            if (_moderatorRepository.GetByUsername(model.Username) is not null)
-                throw new UniquePropertyException("Moderator with this username already exists");
-
             _moderatorRepository.Add(model);
 
             if (dto.BuildingIds != null)
@@ -51,16 +64,27 @@ public class ModeratorService : IModeratorService
             }
         });
 
-        Moderator? saved = _moderatorRepository.GetById(model.Id) ??
-            throw new NotFoundException("Moderator not found");
+        return _jwtTokenGenerator.CreateToken(ModeratorDto.FromModel(_moderatorRepository.GetByUsername(model.Username) ??
+            throw new NotFoundException("Moderator not found")),
+            [(_roleRepository.GetByName("Moderator") ??
+            throw new NotFoundException("Role not found")).Name]);
+    }
 
-        return ModeratorDto.FromModel(saved)!;
+    public (string token, DateTime expiresAt) Login(LoginDto moderatorDto)
+    {
+        Moderator model = _moderatorRepository.GetByUsername(moderatorDto.Username) ??
+            throw new AuthenticationFailureException("Failed to authenticate user");
+
+        if (!BCrypt.Net.BCrypt.Verify(moderatorDto.Password, model.Password))
+            throw new AuthenticationFailureException("Failed to authenticate user");
+
+        return _jwtTokenGenerator.CreateToken(ModeratorDto.FromModel(model), [model.Role.Name]);
     }
 
     public void Remove(int id)
     {
-        Moderator? model = _moderatorRepository.GetById(id);
-        if (model is null) return;
+        Moderator model = _moderatorRepository.GetById(id) ??
+            throw new NotFoundException("Moderator not found");
 
         _unitOfWork.Execute(() =>
         {

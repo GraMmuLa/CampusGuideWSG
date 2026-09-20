@@ -4,6 +4,7 @@ using CampusGuideWSG.Helpers;
 using CampusGuideWSG.Models;
 using CampusGuideWSG.Repositories;
 using CampusGuideWSG.Repositories.Implementations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CampusGuideWSG.Services.Implementations;
 

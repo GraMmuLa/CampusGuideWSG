@@ -17,6 +17,9 @@ public class ModeratorDto
     [MinLength(1)]
     public string Surname { get; set; } = null!;
 
+    [MinLength(8), MaxLength(128)]
+    public string Password { get; set; } = null!;
+
     public int RoleId { get; set; }
 
     public IList<int> BuildingIds { get; set; } = [];
@@ -29,6 +32,7 @@ public class ModeratorDto
             Username = model.Username,
             Name = model.Name,
             Surname = model.Surname,
+            Password = model.Password,
             RoleId = model.RoleId,
             BuildingIds = model.ModeratorsBuildings?.Where(x => x.ModeratorId == model.Id).Select(x => x.BuildingId).ToList() ?? []
         };
@@ -42,6 +46,7 @@ public class ModeratorDto
             Username = dto.Username,
             Name = dto.Name,
             Surname = dto.Surname,
+            Password = dto.Password,
             RoleId = dto.RoleId
         };
     }

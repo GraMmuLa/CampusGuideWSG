@@ -1,6 +1,7 @@
 using CampusGuideWSG.DTO;
 using CampusGuideWSG.Exceptions;
 using CampusGuideWSG.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ namespace CampusGuideWSG.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Moderator,Admin")]
 public class BuildingsController : ControllerBase
 {
     private readonly IBuildingService _service;
@@ -27,6 +29,7 @@ public class BuildingsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [AllowAnonymous]
     public ActionResult<IEnumerable<BuildingDto>> GetAll()
     {
         IList<BuildingDto> buildings = _service.GetAll();
@@ -41,6 +44,7 @@ public class BuildingsController : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     public ActionResult<BuildingDto> GetById(int id)
     {
         try
@@ -62,6 +66,7 @@ public class BuildingsController : ControllerBase
     [HttpGet("name/{name}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     public ActionResult<BuildingDto> GetByName(string name)
     {
         try

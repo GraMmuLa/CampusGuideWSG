@@ -1,5 +1,6 @@
 using CampusGuideWSG.DTO;
 using CampusGuideWSG.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusGuideWSG.Controllers;
@@ -9,6 +10,7 @@ namespace CampusGuideWSG.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Moderator,Admin")]
 public class RoomsController : ControllerBase
 {
     private readonly IRoomService _service;
@@ -25,6 +27,7 @@ public class RoomsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [AllowAnonymous]
     public ActionResult<IEnumerable<RoomDto>> GetAll()
     {
         IList<RoomDto> rooms = _service.GetAll();
@@ -39,6 +42,7 @@ public class RoomsController : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     public ActionResult<RoomDto> GetById(int id)
     {
         try
@@ -60,6 +64,7 @@ public class RoomsController : ControllerBase
     [HttpGet("number/{roomNumber:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     public ActionResult<RoomDto> GetByNumber(int roomNumber)
     {
         try

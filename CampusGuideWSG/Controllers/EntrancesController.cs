@@ -1,6 +1,7 @@
 using CampusGuideWSG.DTO;
 using CampusGuideWSG.Exceptions;
 using CampusGuideWSG.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusGuideWSG.Controllers;
@@ -10,6 +11,7 @@ namespace CampusGuideWSG.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Moderator,Admin")]
 public class EntrancesController : ControllerBase
 {
     private readonly IEntranceService _service;
@@ -26,6 +28,7 @@ public class EntrancesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [AllowAnonymous]
     public ActionResult<IEnumerable<EntranceDto>> GetAll()
     {
         IList<EntranceDto> entrances = _service.GetAll();
@@ -40,6 +43,7 @@ public class EntrancesController : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     public ActionResult<EntranceDto> GetById(int id)
     {
         try
@@ -61,6 +65,7 @@ public class EntrancesController : ControllerBase
     [HttpGet("name/{name}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [AllowAnonymous]
     public ActionResult<EntranceDto> GetByName(string name)
     {
         try

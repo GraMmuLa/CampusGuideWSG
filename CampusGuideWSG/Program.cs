@@ -1,20 +1,31 @@
 using CampusGuideWSG.Context;
+using CampusGuideWSG.Helpers;
+using CampusGuideWSG.Helpers.Implementations;
 using CampusGuideWSG.Repositories;
 using CampusGuideWSG.Repositories.Implementations;
 using CampusGuideWSG.Services;
 using CampusGuideWSG.Services.Implementations;
-using CampusGuideWSG.Helpers;
-using CampusGuideWSG.Helpers.Implementations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString!, ServerVersion.AutoDetect(connectionString!))
+    options.UseMySql(connectionString!,
+        ServerVersion.AutoDetect(connectionString!))
 );
+
+JwtSettings jwtSettings = builder.Configuration
+    .GetSection("JwtConfig")
+    .Get<JwtSettings>()!;
+
+builder.Services.AddSingleton(jwtSettings);
 
 #region Adding Repositories
 builder.Services.AddScoped<IBuildingRepository, BuildingRepository>();
@@ -36,13 +47,56 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 #region Adding Helpers
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 #endregion
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JwtConfig:Issuer"],
+        ValidAudience = builder.Configuration["JwtConfig:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+        Encoding.UTF8.GetBytes(builder.Configuration["JwtConfig:Secret"]!)),
+        ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (context.Request.Cookies.TryGetValue("jwt-token", out var token))
+                context.Token = token;
+            return Task.CompletedTask;
+        },
+
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"Ошибка аутентификации: {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddOpenApi();
 
 builder.Services.AddControllers();
 
 WebApplication app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 
