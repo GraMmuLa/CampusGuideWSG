@@ -6,7 +6,7 @@ public class RoomDto
 {
     public int Id { get; set; }
 
-    [MinLength(3), MaxLength(3)]
+    [Range(1, 99)]
     public int Number { get; set; }
 
     [Required]
