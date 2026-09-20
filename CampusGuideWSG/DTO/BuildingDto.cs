@@ -1,38 +1,43 @@
-using System.Collections.Generic;
-using System.Linq;
 using CampusGuideWSG.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace CampusGuideWSG.DTO;
 
+[Index(nameof(Name), IsUnique = true)]
 public class BuildingDto
 {
     public int Id { get; set; }
 
+    [MinLength(1), MaxLength(2)]
     public string Name { get; set; } = null!;
 
-    public IList<EntranceDto> Entrances { get; set; } = new List<EntranceDto>();
+    public IList<int> ModeratorIds { get; set; } = [];
 
-    public IList<ModeratorBuildingDto> ModeratorsBuildings { get; set; } = new List<ModeratorBuildingDto>();
+    public IList<int> EntranceIds { get; set; } = [];
 
-    public IList<RoomDto> Rooms { get; set; } = new List<RoomDto>();
+    public IList<int> RoomIds { get; set; } = [];
 
-    public static BuildingDto? FromModel(Building? model)
+    public static BuildingDto FromModel(Building model)
     {
-        if (model is null) return null;
         return new BuildingDto
         {
             Id = model.Id,
             Name = model.Name,
+            ModeratorIds = model.ModeratorsBuildings?.Where(x => x.BuildingId == model.Id).Select(x => x.ModeratorId).ToList() ?? [],
+            EntranceIds = model.Entrances?.Select(x => x.Id).ToList() ?? [],
+            RoomIds = model.Rooms?.Select(x => x.Id).ToList() ?? []
         };
     }
 
-    public static Building? ToModel(BuildingDto? dto)
+    public static Building ToModel(BuildingDto dto)
     {
-        if (dto is null) return null;
         return new Building
         {
             Id = dto.Id,
-            Name = dto.Name,
+            Name = dto.Name
         };
     }
 }

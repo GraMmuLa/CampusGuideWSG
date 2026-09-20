@@ -35,6 +35,13 @@ public class RoleRepository : IRoleRepository
             .FirstOrDefault(r => r.Id == id);
     }
 
+    public Role? GetByName(string name)
+    {
+        return _dbContext.Roles
+            .Include(r => r.Moderators)
+            .FirstOrDefault(r => r.Name == name);
+    }
+
     public IList<Role> GetAll()
     {
         return _dbContext.Roles

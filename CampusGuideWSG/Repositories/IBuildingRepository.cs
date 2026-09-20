@@ -8,6 +8,7 @@ namespace CampusGuideWSG.Repositories
         public void Remove(Building building);
         public void Update(Building building);
         public Building? GetById(int id);
+        public Building? GetByName(string name);
         public IList<Building> GetAll();
     }
 }

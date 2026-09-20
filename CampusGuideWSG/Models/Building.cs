@@ -9,7 +9,7 @@ public partial class Building
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<Entrance> Entrances { get; set; } = new List<Entrance>();
+    public virtual ICollection<Entrance> Entrances { get; set; } = [];
 
     public virtual ICollection<ModeratorBuilding> ModeratorsBuildings { get; set; } = new List<ModeratorBuilding>();
 

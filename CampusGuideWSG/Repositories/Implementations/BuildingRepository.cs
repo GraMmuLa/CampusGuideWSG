@@ -37,6 +37,15 @@ public class BuildingRepository : IBuildingRepository
             .FirstOrDefault(b => b.Id == id);
     }
 
+    public Building? GetByName(string name)
+    {
+        return _dbContext.Buildings
+            .Include(b => b.Entrances)
+            .Include(b => b.ModeratorsBuildings)
+            .Include(b => b.Rooms)
+            .FirstOrDefault(b => b.Name == name);
+    }
+
     public IList<Building> GetAll()
     {
         return _dbContext.Buildings

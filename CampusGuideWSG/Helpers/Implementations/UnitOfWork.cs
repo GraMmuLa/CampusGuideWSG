@@ -1,4 +1,5 @@
 ﻿using CampusGuideWSG.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace CampusGuideWSG.Helpers.Implementations
 {
@@ -14,13 +15,27 @@ namespace CampusGuideWSG.Helpers.Implementations
         public void Execute(Action action)
         {
             action();
-            _dbContext.SaveChanges();
+            try
+            {
+                _dbContext.SaveChanges();
+            }
+            catch(DbUpdateException)
+            {
+                
+            }
         }
 
         public T ExecuteWithResult<T>(Func<T> func)
         {
             T result = func();
-            _dbContext.SaveChanges();
+            try
+            {
+                _dbContext.SaveChanges();
+
+            }
+            catch (DbUpdateException)
+            {
+            }
             return result;
         }
     }

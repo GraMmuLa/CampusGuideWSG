@@ -8,6 +8,7 @@ namespace CampusGuideWSG.Repositories
         public void Remove(Entrance entrance);
         public void Update(Entrance entrance);
         public Entrance? GetById(int id);
+        public Entrance? GetByName(string name);
         public IList<Entrance> GetAll();
     }
 }

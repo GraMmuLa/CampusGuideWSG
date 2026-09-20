@@ -8,6 +8,7 @@ namespace CampusGuideWSG.Repositories
         public void Remove(Moderator moderator);
         public void Update(Moderator moderator);
         public Moderator? GetById(int id);
+        public Moderator? GetByUsername(string username);
         public IList<Moderator> GetAll();
     }
 }

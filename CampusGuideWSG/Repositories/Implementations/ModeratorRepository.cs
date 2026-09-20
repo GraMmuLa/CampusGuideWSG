@@ -36,6 +36,14 @@ public class ModeratorRepository : IModeratorRepository
             .FirstOrDefault(m => m.Id == id);
     }
 
+    public Moderator? GetByUsername(string username)
+    {
+        return _dbContext.Moderators
+            .Include(m => m.ModeratorsBuildings)
+            .Include(m => m.Role)
+            .FirstOrDefault(m => m.Username == username);
+    }
+
     public IList<Moderator> GetAll()
     {
         return _dbContext.Moderators

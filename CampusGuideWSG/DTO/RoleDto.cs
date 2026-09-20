@@ -1,20 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+
 namespace CampusGuideWSG.DTO;
 
+[Index(nameof(Name), IsUnique = true)]
 public class RoleDto
 {
     public int Id { get; set; }
 
+    [MinLength(2)]
     public string Name { get; set; } = null!;
 
-    public static RoleDto? FromModel(Models.Role? model)
+    public static RoleDto FromModel(Models.Role model)
     {
-        if (model is null) return null;
         return new RoleDto { Id = model.Id, Name = model.Name };
     }
 
-    public static Models.Role? ToModel(RoleDto? dto)
+    public static Models.Role ToModel(RoleDto dto)
     {
-        if (dto is null) return null;
         return new Models.Role { Id = dto.Id, Name = dto.Name };
     }
 }

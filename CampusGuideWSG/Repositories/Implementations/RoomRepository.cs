@@ -35,6 +35,13 @@ public class RoomRepository : IRoomRepository
             .FirstOrDefault(r => r.Id == id);
     }
 
+    public Room? GetByNumber(int number)
+    {
+        return _dbContext.Rooms
+            .Include(r => r.Building)
+            .FirstOrDefault(r => r.Number == number);
+    }
+
     public IList<Room> GetAll()
     {
         return _dbContext.Rooms

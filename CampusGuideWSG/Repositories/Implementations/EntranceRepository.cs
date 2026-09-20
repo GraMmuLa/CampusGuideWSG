@@ -35,6 +35,13 @@ public class EntranceRepository : IEntranceRepository
             .FirstOrDefault(e => e.Id == id);
     }
 
+    public Entrance? GetByName(string name)
+    {
+        return _dbContext.Entrances
+            .Include(e => e.Building)
+            .FirstOrDefault(e => e.Name == name);
+    }
+
     public IList<Entrance> GetAll()
     {
         return _dbContext.Entrances

@@ -1,6 +1,7 @@
 using CampusGuideWSG.Context;
 using CampusGuideWSG.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace CampusGuideWSG.Repositories.Implementations;
 
@@ -27,7 +28,6 @@ public class ModeratorBuildingRepository : IModeratorBuildingRepository
     {
         _dbContext.ModeratorsBuildings.Update(moderatorsBuilding);
     }
-
     public ModeratorBuilding? GetById(int id)
     {
         return _dbContext.ModeratorsBuildings

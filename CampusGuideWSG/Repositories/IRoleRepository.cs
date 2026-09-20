@@ -8,6 +8,7 @@ namespace CampusGuideWSG.Repositories
         public void Remove(Role role);
         public void Update(Role role);
         public Role? GetById(int id);
+        public Role? GetByName(string name);
         public IList<Role> GetAll();
     }
 }
