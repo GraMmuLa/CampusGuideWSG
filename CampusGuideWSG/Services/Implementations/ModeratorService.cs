@@ -32,53 +32,60 @@ public class ModeratorService : IModeratorService
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public (string token, DateTime expiresAt) Register(ModeratorDto dto)
+    public AuthenticationResponse Register(RegisterDto registerDto)
     {
-        Moderator model = ModeratorDto.ToModel(dto)!;
 
-        if (_moderatorRepository.GetById(model.Id) is not null)
-            throw new UniquePropertyException("Moderator with this id already exists");
-        if (_moderatorRepository.GetByUsername(model.Username) is not null)
+        if (_moderatorRepository.GetByUsername(registerDto.Username) is not null)
             throw new UniquePropertyException("Moderator with this username already exists");
 
-        model.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
-        model.Role = _roleRepository.GetByName("Moderator") ??
-            throw new NotFoundException("Role not found");
+        registerDto.Password = BCrypt.Net.BCrypt.HashPassword(registerDto.Password);
 
         _unitOfWork.Execute(() =>
         {
-            _moderatorRepository.Add(model);
-
-            if (dto.BuildingIds != null)
+            _moderatorRepository.Add(new Moderator
             {
-                foreach (int buildingId in dto.BuildingIds)
-                {
-                    ModeratorBuilding link = new()
-                    {
-                        Moderator = model,
-                        BuildingId = buildingId
-                    };
-
-                    _moderatorBuildingRepository.Add(link);
-                }
-            }
+                Username = registerDto.Username,
+                Name = registerDto.Name,
+                Surname = registerDto.Surname,
+                Password = registerDto.Password,
+                RoleId = (_roleRepository.GetByName("Moderator") ??
+                    throw new NotFoundException("Role not found")).Id
+            });
         });
 
-        return _jwtTokenGenerator.CreateToken(ModeratorDto.FromModel(_moderatorRepository.GetByUsername(model.Username) ??
-            throw new NotFoundException("Moderator not found")),
+        ModeratorDto moderatorDto = ModeratorDto.FromModel(_moderatorRepository.GetByUsername(registerDto.Username) ??
+                throw new NotFoundException("Moderator not found"));
+
+        (string token, DateTime expiresAt) = _jwtTokenGenerator.CreateToken(moderatorDto,
             [(_roleRepository.GetByName("Moderator") ??
-            throw new NotFoundException("Role not found")).Name]);
+                throw new NotFoundException("Role not found")).Name]);
+
+        return new AuthenticationResponse
+        {
+            JwtToken = token,
+            ExpiresAt = expiresAt,
+            Value = moderatorDto
+        };
     }
 
-    public (string token, DateTime expiresAt) Login(LoginDto moderatorDto)
+    public AuthenticationResponse Login(LoginDto loginDto)
     {
-        Moderator model = _moderatorRepository.GetByUsername(moderatorDto.Username) ??
+        Moderator model = _moderatorRepository.GetByUsername(loginDto.Username) ??
             throw new AuthenticationFailureException("Failed to authenticate user");
 
-        if (!BCrypt.Net.BCrypt.Verify(moderatorDto.Password, model.Password))
+        if (!BCrypt.Net.BCrypt.Verify(loginDto.Password, model.Password))
             throw new AuthenticationFailureException("Failed to authenticate user");
 
-        return _jwtTokenGenerator.CreateToken(ModeratorDto.FromModel(model), [model.Role.Name]);
+        ModeratorDto moderatorDto = ModeratorDto.FromModel(model);
+
+        (string token, DateTime expiresAt) = _jwtTokenGenerator.CreateToken(moderatorDto, [model.Role.Name]);
+
+        return new AuthenticationResponse
+        {
+            JwtToken = token,
+            ExpiresAt = expiresAt,
+            Value = moderatorDto
+        };
     }
 
     public void Remove(int id)

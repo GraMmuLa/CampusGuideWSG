@@ -98,18 +98,15 @@ public class ModeratorsController : ControllerBase
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public ActionResult<(string token, DateTime expiresAt)> Register(ModeratorDto dto)
+    public ActionResult<(string token, DateTime expiresAt)> Register(RegisterDto dto)
     {
         try
         {
-            (string token, DateTime expiresAt) = _service.Register(dto);
+            AuthenticationResponse response = _service.Register(dto);
 
-            SetJwtCookie(token, expiresAt);
+            SetJwtCookie(response.JwtToken, response.ExpiresAt);
 
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                Message = "User registered Successfully"
-            });
+            return StatusCode(StatusCodes.Status201Created, response);
         }
         catch(UniquePropertyException ex)
         {
@@ -133,11 +130,11 @@ public class ModeratorsController : ControllerBase
     {
         try
         {
-            (string token, DateTime expiresAt) = _service.Login(dto);
+            AuthenticationResponse response = _service.Login(dto);
 
-            SetJwtCookie(token, expiresAt);
+            SetJwtCookie(response.JwtToken, response.ExpiresAt);
 
-            return Ok();
+            return Ok(response);
         }
         catch(AuthenticationFailureException ex)
         {
