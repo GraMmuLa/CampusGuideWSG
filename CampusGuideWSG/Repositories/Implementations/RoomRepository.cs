@@ -44,8 +44,6 @@ public class RoomRepository : IRoomRepository
 
     public IList<Room> GetAll()
     {
-        return _dbContext.Rooms
-            .Include(r => r.Building)
-            .ToList();
+        return [.. _dbContext.Rooms.Include(r => r.Building)];
     }
 }

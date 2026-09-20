@@ -32,7 +32,7 @@ public class BuildingRepository : IBuildingRepository
     {
         return _dbContext.Buildings
             .Include(b => b.Entrances)
-            .Include(b => b.ModeratorsBuildings)
+            .Include(b => b.Moderators)
             .Include(b => b.Rooms)
             .FirstOrDefault(b => b.Id == id);
     }
@@ -41,17 +41,16 @@ public class BuildingRepository : IBuildingRepository
     {
         return _dbContext.Buildings
             .Include(b => b.Entrances)
-            .Include(b => b.ModeratorsBuildings)
+            .Include(b => b.Moderators)
             .Include(b => b.Rooms)
             .FirstOrDefault(b => b.Name == name);
     }
 
     public IList<Building> GetAll()
     {
-        return _dbContext.Buildings
+        return [.. _dbContext.Buildings
             .Include(b => b.Entrances)
-            .Include(b => b.ModeratorsBuildings)
-            .Include(b => b.Rooms)
-            .ToList();
+            .Include(b => b.Moderators)
+            .Include(b => b.Rooms)];
     }
 }

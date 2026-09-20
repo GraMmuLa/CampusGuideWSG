@@ -31,7 +31,7 @@ public class ModeratorRepository : IModeratorRepository
     public Moderator? GetById(int id)
     {
         return _dbContext.Moderators
-            .Include(m => m.ModeratorsBuildings)
+            .Include(m => m.Buildings)
             .Include(m => m.Role)
             .FirstOrDefault(m => m.Id == id);
     }
@@ -39,16 +39,15 @@ public class ModeratorRepository : IModeratorRepository
     public Moderator? GetByUsername(string username)
     {
         return _dbContext.Moderators
-            .Include(m => m.ModeratorsBuildings)
+            .Include(m => m.Buildings)
             .Include(m => m.Role)
             .FirstOrDefault(m => m.Username == username);
     }
 
     public IList<Moderator> GetAll()
     {
-        return _dbContext.Moderators
-            .Include(m => m.ModeratorsBuildings)
-            .Include(m => m.Role)
-            .ToList();
+        return [.. _dbContext.Moderators
+            .Include(m => m.Buildings)
+            .Include(m => m.Role)];
     }
 }

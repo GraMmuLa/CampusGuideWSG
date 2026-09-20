@@ -12,6 +12,6 @@ public interface IBuildingService
     BuildingDto GetById(int id);
     BuildingDto GetByName(string name);
     IList<BuildingDto> GetAll();
-    void AddModerator(int buildingId, int moderatorId);
-    void RemoveModerator(int buildingId, int moderatorId);
+    BuildingDto AddModerator(int buildingId, int moderatorId);
+    BuildingDto RemoveModerator(int buildingId, int moderatorId);
 }

@@ -44,8 +44,6 @@ public class RoleRepository : IRoleRepository
 
     public IList<Role> GetAll()
     {
-        return _dbContext.Roles
-            .Include(r => r.Moderators)
-            .ToList();
+        return [.. _dbContext.Roles.Include(r => r.Moderators)];
     }
 }

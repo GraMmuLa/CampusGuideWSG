@@ -1,9 +1,7 @@
 using CampusGuideWSG.DTO;
 using CampusGuideWSG.Exceptions;
-using CampusGuideWSG.Helpers;
 using CampusGuideWSG.Services;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CampusGuideWSG.Controllers;
@@ -106,7 +104,7 @@ public class ModeratorsController : ControllerBase
 
             SetJwtCookie(response.JwtToken, response.ExpiresAt);
 
-            return StatusCode(StatusCodes.Status201Created, response);
+            return StatusCode(StatusCodes.Status201Created, response.Value);
         }
         catch(UniquePropertyException ex)
         {
@@ -119,7 +117,7 @@ public class ModeratorsController : ControllerBase
     }
 
     /// <summary>
-    /// Logins a new moderator.
+    /// Logins a moderator.
     /// </summary>
     /// <param name="dto">Login DTO to login object</param>
     /// <returns>JWT Token and expiration time</returns>
@@ -134,7 +132,7 @@ public class ModeratorsController : ControllerBase
 
             SetJwtCookie(response.JwtToken, response.ExpiresAt);
 
-            return Ok(response);
+            return Ok(response.Value);
         }
         catch(AuthenticationFailureException ex)
         {
@@ -174,6 +172,54 @@ public class ModeratorsController : ControllerBase
             return Conflict(new ProblemDetails
             {
                 Status = StatusCodes.Status409Conflict,
+                Title = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Add a building to Moderator
+    /// </summary>
+    /// <param name="moderatorId"></param>
+    /// <param name="buildingId"></param>
+    /// <returns>Moderator Dto</returns>
+    [HttpPost("/add-building")]
+    public ActionResult<ModeratorDto> AddBuilding([FromQuery] int moderatorId, [FromQuery] int buildingId)
+    {
+        try
+        {
+            ModeratorDto moderatorDto = _service.AddBuilding(moderatorId, buildingId);
+            return Ok(moderatorDto);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Remove a building from Moderator
+    /// </summary>
+    /// <param name="moderatorId"></param>
+    /// <param name="buildingId"></param>
+    /// <returns>Moderator Dto</returns>
+    [HttpPost("/remove-building")]
+    public ActionResult<BuildingDto> RemoveBuilding([FromQuery] int moderatorId, [FromQuery] int buildingId)
+    {
+        try
+        {
+            ModeratorDto moderatorDto = _service.RemoveBuilding(moderatorId, buildingId);
+            return Ok(moderatorDto);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
                 Title = ex.Message
             });
         }

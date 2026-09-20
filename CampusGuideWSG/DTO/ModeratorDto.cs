@@ -30,7 +30,7 @@ public class ModeratorDto
             Name = model.Name,
             Surname = model.Surname,
             RoleId = model.RoleId,
-            BuildingIds = model.ModeratorsBuildings?.Where(x => x.ModeratorId == model.Id).Select(x => x.BuildingId).ToList() ?? []
+            BuildingIds = [..model.Buildings.Select(x=>x.Id)]
         };
     }
 

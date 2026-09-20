@@ -26,7 +26,7 @@ public class BuildingDto
         {
             Id = model.Id,
             Name = model.Name,
-            ModeratorIds = model.ModeratorsBuildings?.Where(x => x.BuildingId == model.Id).Select(x => x.ModeratorId).ToList() ?? [],
+            ModeratorIds = model.Moderators.Select(x => x.Id).ToList() ?? [],
             EntranceIds = model.Entrances?.Select(x => x.Id).ToList() ?? [],
             RoomIds = model.Rooms?.Select(x => x.Id).ToList() ?? []
         };
@@ -37,7 +37,7 @@ public class BuildingDto
         return new Building
         {
             Id = dto.Id,
-            Name = dto.Name
+            Name = dto.Name,
         };
     }
 }

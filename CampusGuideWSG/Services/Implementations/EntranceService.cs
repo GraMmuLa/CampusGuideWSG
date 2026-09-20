@@ -29,6 +29,8 @@ public class EntranceService : IEntranceService
                 throw new UniquePropertyException("Entrance with this id already exists");
             if (_entranceRepository.GetByName(model.Name) is not null)
                 throw new UniquePropertyException("Entrance with this name already exists");
+            if (dto.BuildingId == 0)
+                throw new MissingDataException("Missing Building Id");
             _entranceRepository.Add(model);
         });
 

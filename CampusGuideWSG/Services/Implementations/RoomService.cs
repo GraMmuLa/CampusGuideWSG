@@ -1,9 +1,8 @@
 using CampusGuideWSG.DTO;
-using CampusGuideWSG.Exceptions;
 using CampusGuideWSG.Helpers;
 using CampusGuideWSG.Models;
+using CampusGuideWSG.Exceptions;
 using CampusGuideWSG.Repositories;
-using CampusGuideWSG.Repositories.Implementations;
 
 namespace CampusGuideWSG.Services.Implementations;
 
@@ -27,6 +26,8 @@ public class RoomService : IRoomService
                 throw new UniquePropertyException("Room with this id already exists");
             if (_roomRepository.GetByNumber(model.Number) is not null)
                 throw new UniquePropertyException("Room with this number already exists");
+            if (dto.BuildingId == 0)
+                throw new MissingDataException("Missing Building Id");
             _roomRepository.Add(model);
         });
 

@@ -11,7 +11,7 @@ public partial class Building
 
     public virtual ICollection<Entrance> Entrances { get; set; } = [];
 
-    public virtual ICollection<ModeratorBuilding> ModeratorsBuildings { get; set; } = new List<ModeratorBuilding>();
+    public virtual ICollection<Moderator> Moderators { get; set; } = new List<Moderator>();
 
     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
 }

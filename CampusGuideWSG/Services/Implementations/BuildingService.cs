@@ -11,13 +11,15 @@ namespace CampusGuideWSG.Services.Implementations;
 public class BuildingService : IBuildingService
 {
     private readonly IBuildingRepository _buildingRepository;
-    private readonly IModeratorBuildingRepository _moderatorBuildingRepository;
+    private readonly IModeratorRepository _moderatorRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public BuildingService(IBuildingRepository repository, IModeratorBuildingRepository mbRepository, IUnitOfWork unitOfWork)
+    public BuildingService(IBuildingRepository repository,
+        IModeratorRepository moderatorRepository,
+        IUnitOfWork unitOfWork)
     {
         _buildingRepository = repository;
-        _moderatorBuildingRepository = mbRepository;
+        _moderatorRepository = moderatorRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -42,6 +44,8 @@ public class BuildingService : IBuildingService
         Building model = _buildingRepository.GetById(id) ??
             throw new NotFoundException("Building not found");
 
+        model.Moderators.Clear();
+
         _unitOfWork.Execute(() => _buildingRepository.Remove(model));
     }
 
@@ -54,6 +58,7 @@ public class BuildingService : IBuildingService
             throw new NotFoundException("Building not found");
 
         existing.Name = dto.Name;
+        existing.Moderators = [.. _moderatorRepository.GetAll().Where(x => x.Id == dto.Id)];
 
         _unitOfWork.Execute(() => _buildingRepository.Update(existing));
 
@@ -78,22 +83,39 @@ public class BuildingService : IBuildingService
         return [.._buildingRepository.GetAll().Select(BuildingDto.FromModel)];
     }
 
-    public void AddModerator(int buildingId, int moderatorId)
+    public BuildingDto AddModerator(int buildingId, int moderatorId)
     {
-        ModeratorBuilding link = new()
-        {
-            BuildingId = buildingId,
-            ModeratorId = moderatorId
-        };
-        _unitOfWork.Execute(() => _moderatorBuildingRepository.Add(link));
+        Building building = _buildingRepository.GetById(buildingId) ??
+            throw new NotFoundException("Building not found");
+
+        Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
+            throw new NotFoundException("Moderator not found");
+
+        if (building.Moderators.Any(x => x.Id == moderatorId))
+            throw new UniquePropertyException("Moderator is already assigned to this building");
+
+        building.Moderators.Add(moderator);
+
+        _unitOfWork.Execute(() => _buildingRepository.Update(building));
+
+        return BuildingDto.FromModel(_buildingRepository.GetById(buildingId)!);
     }
 
-    public void RemoveModerator(int buildingId, int moderatorId)
+    public BuildingDto RemoveModerator(int buildingId, int moderatorId)
     {
-        ModeratorBuilding? existing = _moderatorBuildingRepository.GetAll()
-            .FirstOrDefault(x => x.BuildingId == buildingId && x.ModeratorId == moderatorId);
+        Building building = _buildingRepository.GetById(buildingId) ??
+            throw new NotFoundException("Building not found");
 
-        _unitOfWork.Execute(() => _moderatorBuildingRepository.Remove(existing ??
-            throw new NotFoundException("Moderator-Building link not found")));
+        Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
+            throw new NotFoundException("Moderator not found");
+
+        if (!building.Moderators.Any(x => x.Id == moderatorId))
+            throw new NotFoundException("Moderator not found");
+
+        building.Moderators.Remove(moderator);
+
+        _unitOfWork.Execute(() => _buildingRepository.Update(building));
+
+        return BuildingDto.FromModel(_buildingRepository.GetById(buildingId)!);
     }
 }

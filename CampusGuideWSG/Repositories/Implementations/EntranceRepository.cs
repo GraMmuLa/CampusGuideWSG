@@ -44,8 +44,6 @@ public class EntranceRepository : IEntranceRepository
 
     public IList<Entrance> GetAll()
     {
-        return _dbContext.Entrances
-            .Include(e => e.Building)
-            .ToList();
+        return [.. _dbContext.Entrances.Include(e => e.Building)];
     }
 }

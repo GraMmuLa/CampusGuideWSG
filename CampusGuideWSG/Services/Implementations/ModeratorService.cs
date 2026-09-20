@@ -15,19 +15,19 @@ public class ModeratorService : IModeratorService
 {
     private readonly IModeratorRepository _moderatorRepository;
     private readonly IRoleRepository _roleRepository;
-    private readonly IModeratorBuildingRepository _moderatorBuildingRepository;
+    private readonly IBuildingRepository _buildingRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     public ModeratorService(IModeratorRepository repository,
         IRoleRepository roleRepository,
-        IModeratorBuildingRepository moderatorBuildingRepository,
+        IBuildingRepository buildingRepository,
         IUnitOfWork unitOfWork,
         IJwtTokenGenerator jwtTokenGenerator)
     {
         _moderatorRepository = repository;
         _roleRepository = roleRepository;
-        _moderatorBuildingRepository = moderatorBuildingRepository;
+        _buildingRepository = buildingRepository;
         _unitOfWork = unitOfWork;
         _jwtTokenGenerator = jwtTokenGenerator;
     }
@@ -93,15 +93,9 @@ public class ModeratorService : IModeratorService
         Moderator model = _moderatorRepository.GetById(id) ??
             throw new NotFoundException("Moderator not found");
 
-        _unitOfWork.Execute(() =>
-        {
-            IList<ModeratorBuilding> links = [.._moderatorBuildingRepository
-            .GetAll().Where(x => x.ModeratorId == model.Id)];
+        model.Buildings.Clear();
 
-            foreach (ModeratorBuilding link in links) _moderatorBuildingRepository.Remove(link);
-
-            _moderatorRepository.Remove(model);
-        });
+        _unitOfWork.Execute(() => _moderatorRepository.Remove(model));
     }
 
     public ModeratorDto Update(ModeratorDto dto)
@@ -117,27 +111,9 @@ public class ModeratorService : IModeratorService
         existing.Name = dto.Name;
         existing.Surname = dto.Surname;
         existing.RoleId = dto.RoleId;
+        existing.Buildings = [.._buildingRepository.GetAll().Where(x => x.Id == dto.Id)];
 
-        _unitOfWork.Execute(() =>
-        {
-            _moderatorRepository.Update(existing);
-
-            if (dto.BuildingIds != null)
-            {
-                IList<ModeratorBuilding> old = [.. _moderatorBuildingRepository.GetAll().Where(x => x.ModeratorId == existing.Id)];
-                foreach (ModeratorBuilding o in old) _moderatorBuildingRepository.Remove(o);
-
-                foreach (int buildingId in dto.BuildingIds)
-                {
-                    ModeratorBuilding link = new()
-                    {
-                        Moderator = existing,
-                        BuildingId = buildingId
-                    };
-                    _moderatorBuildingRepository.Add(link);
-                }
-            }
-        });
+        _unitOfWork.Execute(() => _moderatorRepository.Update(existing));
 
         return ModeratorDto.FromModel(_moderatorRepository.GetById(existing.Id) ??
             throw new NotFoundException("Moderator not found"));
@@ -160,23 +136,40 @@ public class ModeratorService : IModeratorService
         return [.._moderatorRepository.GetAll().Select(ModeratorDto.FromModel)];
     }
 
-    public void AddBuilding(int moderatorId, int buildingId)
+    public ModeratorDto AddBuilding(int moderatorId, int buildingId)
     {
-        ModeratorBuilding link = new()
-        {
-            ModeratorId = moderatorId,
-            BuildingId = buildingId
-        };
-        _unitOfWork.Execute(() => _moderatorBuildingRepository.Add(link));
+        Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
+            throw new NotFoundException("Moderator not found");
+
+        Building building = _buildingRepository.GetById(buildingId) ??
+            throw new NotFoundException("Building not found");
+
+        if (moderator.Buildings.Any(x => x.Id == buildingId))
+            throw new UniquePropertyException("Building is already assigned to this moderator");
+
+        moderator.Buildings.Add(building);
+
+        _unitOfWork.Execute(() => _buildingRepository.Update(building));
+
+        return ModeratorDto.FromModel(_moderatorRepository.GetById(moderatorId) ??
+            throw new NotFoundException("Moderator not found"));
     }
 
-    public void RemoveBuilding(int moderatorId, int buildingId)
+    public ModeratorDto RemoveBuilding(int moderatorId, int buildingId)
     {
-        ModeratorBuilding existing = _moderatorBuildingRepository
-            .GetAll()
-            .FirstOrDefault(x => x.ModeratorId == moderatorId && x.BuildingId == buildingId) ??
-            throw new NotFoundException("Moderator-Building link not found");
+        Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
+            throw new NotFoundException("Moderator not found");
 
-        _unitOfWork.Execute(() => _moderatorBuildingRepository.Remove(existing));
+        Building building = _buildingRepository.GetById(buildingId) ??
+            throw new NotFoundException("Building not found");
+
+        if (!moderator.Buildings.Any(x => x.Id == buildingId))
+            throw new NotFoundException("Moderator not found");
+
+        moderator.Buildings.Remove(building);
+
+        _unitOfWork.Execute(() => _buildingRepository.Update(building));
+
+        return ModeratorDto.FromModel(_moderatorRepository.GetById(moderatorId)!);
     }
 }

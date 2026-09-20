@@ -22,8 +22,6 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Moderator> Moderators { get; set; }
 
-    public virtual DbSet<ModeratorBuilding> ModeratorsBuildings { get; set; }
-
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<Room> Rooms { get; set; }
@@ -106,37 +104,24 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Role).WithMany(p => p.Moderators)
                 .HasForeignKey(d => d.RoleId)
                 .HasConstraintName("MODERATORS_ROLES_FK");
-        });
 
-        modelBuilder.Entity<ModeratorBuilding>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PRIMARY");
+            entity.HasMany(d => d.Buildings).WithMany(p => p.Moderators)
+                .UsingEntity<Dictionary<string, object>>(
+                    "moderators_buildings",
+                    l => l.HasOne<Building>().WithMany().HasForeignKey("building_id")
+                        .HasConstraintName("MODERATORS_BUILDINGS_BUILDINGS_FK"),
+                    r => r.HasOne<Moderator>().WithMany().HasForeignKey("moderator_id")
+                        .HasConstraintName("MODERATORS_BUILDINGS_MODERATORS_FK"),
+                    j =>
+                    {
+                        j.ToTable("moderators_buildings");
 
-            entity.ToTable("moderators_buildings");
+                        j.HasIndex("moderator_id", "building_id").IsUnique()
+                            .HasDatabaseName("MODERATORS_BUILDINGS_IX");
 
-            entity.HasIndex(e => e.BuildingId, "MODERATORS_BUILDINGS_BUILDINGS_FK");
-
-            entity.HasIndex(e => e.ModeratorId, "MODERATORS_BUILDINGS_MODERATORS_FK");
-
-            entity.Property(e => e.Id)
-                .HasColumnType("int(11)")
-                .HasColumnName("id");
-            entity.Property(e => e.BuildingId)
-                .HasColumnType("int(11)")
-                .HasColumnName("building_id");
-            entity.Property(e => e.ModeratorId)
-                .HasColumnType("int(11)")
-                .HasColumnName("moderator_id");
-
-            entity.HasOne(d => d.Building).WithMany(p => p.ModeratorsBuildings)
-                .HasForeignKey(d => d.BuildingId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("MODERATORS_BUILDINGS_BUILDINGS_FK");
-
-            entity.HasOne(d => d.Moderator).WithMany(p => p.ModeratorsBuildings)
-                .HasForeignKey(d => d.ModeratorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("MODERATORS_BUILDINGS_MODERATORS_FK");
+                        j.HasKey("moderator_id", "building_id");
+                    }
+                );
         });
 
         modelBuilder.Entity<Role>(entity =>

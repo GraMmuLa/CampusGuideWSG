@@ -141,6 +141,54 @@ public class BuildingsController : ControllerBase
     }
 
     /// <summary>
+    /// Add a moderator to Building
+    /// </summary>
+    /// <param name="buildingId"></param>
+    /// <param name="moderatorId"></param>
+    /// <returns>Building Dto</returns>
+    [HttpPost("/add-moderator")]
+    public ActionResult<BuildingDto> AddModerator([FromQuery] int buildingId, [FromQuery] int moderatorId)
+    {
+        try
+        {
+            BuildingDto buildingDto = _service.AddModerator(buildingId, moderatorId);
+            return Ok(buildingDto);
+        }
+        catch(NotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Remove a moderator from Building
+    /// </summary>
+    /// <param name="buildingId"></param>
+    /// <param name="moderatorId"></param>
+    /// <returns>Building Dto</returns>
+    [HttpPost("/remove-moderator")]
+    public ActionResult<BuildingDto> RemoveModerator([FromQuery] int buildingId, [FromQuery] int moderatorId)
+    {
+        try
+        {
+            BuildingDto buildingDto = _service.RemoveModerator(buildingId, moderatorId);
+            return Ok(buildingDto);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
     /// Delete a building by id.
     /// </summary>
     /// <param name="id">Building Id to delete</param>

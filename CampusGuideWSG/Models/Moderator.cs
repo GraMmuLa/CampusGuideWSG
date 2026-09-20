@@ -18,7 +18,7 @@ public partial class Moderator
 
     public int RoleId { get; set; }
 
-    public virtual ICollection<ModeratorBuilding> ModeratorsBuildings { get; set; } = new List<ModeratorBuilding>();
+    public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
 
     public virtual Role Role { get; set; } = null!;
 }

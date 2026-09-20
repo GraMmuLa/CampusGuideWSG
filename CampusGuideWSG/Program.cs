@@ -33,7 +33,6 @@ builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IEntranceRepository, EntranceRepository>();
 builder.Services.AddScoped<IModeratorRepository, ModeratorRepository>();
-builder.Services.AddScoped<IModeratorBuildingRepository, ModeratorBuildingRepository>();
 #endregion
 
 #region Adding Services
