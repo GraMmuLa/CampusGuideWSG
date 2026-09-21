@@ -207,7 +207,7 @@ public class ModeratorsController : ControllerBase
     /// <param name="moderatorId"></param>
     /// <param name="buildingIds"></param>
     /// <returns>Moderator Dto</returns>
-    [HttpPost("/remove-buildings")]
+    [HttpDelete("/remove-buildings")]
     public ActionResult<ModeratorDto> RemoveBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         try
