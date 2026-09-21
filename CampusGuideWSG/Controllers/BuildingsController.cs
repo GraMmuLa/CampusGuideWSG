@@ -146,7 +146,7 @@ public class BuildingsController : ControllerBase
     /// <param name="buildingId"></param>
     /// <param name="roomIds"></param>
     /// <returns>Building Dto</returns>
-    [HttpPost("/add-rooms")]
+    [HttpPost("add-rooms")]
     public ActionResult<BuildingDto> AddRooms(int buildingId, ICollection<int> roomIds)
     {
         try
@@ -178,7 +178,7 @@ public class BuildingsController : ControllerBase
     /// <param name="buildingId"></param>
     /// <param name="roomIds"></param>
     /// <returns>Building Dto</returns>
-    [HttpDelete("/remove-rooms")]
+    [HttpDelete("remove-rooms")]
     public ActionResult<BuildingDto> RemoveRooms(int buildingId, ICollection<int> roomIds)
     {
         try

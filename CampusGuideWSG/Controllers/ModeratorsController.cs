@@ -183,7 +183,7 @@ public class ModeratorsController : ControllerBase
     /// <param name="moderatorId"></param>
     /// <param name="buildingIds"></param>
     /// <returns>Moderator Dto</returns>
-    [HttpPost("/add-buildings")]
+    [HttpPost("add-buildings")]
     public ActionResult<ModeratorDto> AddBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         try
@@ -207,7 +207,7 @@ public class ModeratorsController : ControllerBase
     /// <param name="moderatorId"></param>
     /// <param name="buildingIds"></param>
     /// <returns>Moderator Dto</returns>
-    [HttpDelete("/remove-buildings")]
+    [HttpDelete("remove-buildings")]
     public ActionResult<ModeratorDto> RemoveBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         try
