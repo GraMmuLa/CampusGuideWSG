@@ -226,6 +226,26 @@ public class ModeratorsController : ControllerBase
     }
 
     /// <summary>
+    /// Moderator Log out
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        CookieOptions cookieOptions = new()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTimeOffset.UtcNow.AddDays(-1)
+        };
+
+        Response.Cookies.Delete("jwt-token", cookieOptions);
+
+        return Ok();
+    }
+
+    /// <summary>
     /// Delete a moderator by ID.
     /// </summary>
     /// <param name="id">Moderator Id to delete</param>
