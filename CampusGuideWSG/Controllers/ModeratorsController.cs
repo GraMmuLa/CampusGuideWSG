@@ -178,17 +178,17 @@ public class ModeratorsController : ControllerBase
     }
 
     /// <summary>
-    /// Add a building to Moderator
+    /// Add a buildings to Moderator
     /// </summary>
     /// <param name="moderatorId"></param>
-    /// <param name="buildingId"></param>
+    /// <param name="buildingIds"></param>
     /// <returns>Moderator Dto</returns>
-    [HttpPost("/add-building")]
-    public ActionResult<ModeratorDto> AddBuilding([FromQuery] int moderatorId, [FromQuery] int buildingId)
+    [HttpPost("/add-buildings")]
+    public ActionResult<ModeratorDto> AddBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         try
         {
-            ModeratorDto moderatorDto = _service.AddBuilding(moderatorId, buildingId);
+            ModeratorDto moderatorDto = _service.AddBuildings(moderatorId, buildingIds);
             return Ok(moderatorDto);
         }
         catch (NotFoundException ex)
@@ -202,17 +202,17 @@ public class ModeratorsController : ControllerBase
     }
 
     /// <summary>
-    /// Remove a building from Moderator
+    /// Remove a buildings from Moderator
     /// </summary>
     /// <param name="moderatorId"></param>
-    /// <param name="buildingId"></param>
+    /// <param name="buildingIds"></param>
     /// <returns>Moderator Dto</returns>
-    [HttpPost("/remove-building")]
-    public ActionResult<BuildingDto> RemoveBuilding([FromQuery] int moderatorId, [FromQuery] int buildingId)
+    [HttpPost("/remove-buildings")]
+    public ActionResult<ModeratorDto> RemoveBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         try
         {
-            ModeratorDto moderatorDto = _service.RemoveBuilding(moderatorId, buildingId);
+            ModeratorDto moderatorDto = _service.RemoveBuildings(moderatorId, buildingIds);
             return Ok(moderatorDto);
         }
         catch (NotFoundException ex)

@@ -12,14 +12,17 @@ public class BuildingService : IBuildingService
 {
     private readonly IBuildingRepository _buildingRepository;
     private readonly IModeratorRepository _moderatorRepository;
+    private readonly IRoomRepository _roomRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public BuildingService(IBuildingRepository repository,
         IModeratorRepository moderatorRepository,
+        IRoomRepository roomRepository,
         IUnitOfWork unitOfWork)
     {
         _buildingRepository = repository;
         _moderatorRepository = moderatorRepository;
+        _roomRepository = roomRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -83,36 +86,34 @@ public class BuildingService : IBuildingService
         return [.._buildingRepository.GetAll().Select(BuildingDto.FromModel)];
     }
 
-    public BuildingDto AddModerator(int buildingId, int moderatorId)
+    public BuildingDto AddRooms(int buildingId, ICollection<int> roomIds)
     {
         Building building = _buildingRepository.GetById(buildingId) ??
             throw new NotFoundException("Building not found");
 
-        Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
-            throw new NotFoundException("Moderator not found");
+        if (roomIds.Any(x => building.Rooms.Select(x=>x.Id).Contains(x)))
+            throw new UniquePropertyException("Room is already assigned to this building");
 
-        if (building.Moderators.Any(x => x.Id == moderatorId))
-            throw new UniquePropertyException("Moderator is already assigned to this building");
-
-        building.Moderators.Add(moderator);
+        foreach (var roomId in roomIds)
+            building.Rooms.Add(_roomRepository.GetById(roomId) ??
+                throw new NotFoundException("Room not found"));
 
         _unitOfWork.Execute(() => _buildingRepository.Update(building));
 
         return BuildingDto.FromModel(_buildingRepository.GetById(buildingId)!);
     }
 
-    public BuildingDto RemoveModerator(int buildingId, int moderatorId)
+    public BuildingDto RemoveRooms(int buildingId, ICollection<int> roomIds)
     {
         Building building = _buildingRepository.GetById(buildingId) ??
             throw new NotFoundException("Building not found");
 
-        Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
-            throw new NotFoundException("Moderator not found");
+        if (roomIds.Any(x => !building.Rooms.Select(x=>x.Id).Contains(x)))
+            throw new NotFoundException("Room is not assigned to this building");
 
-        if (!building.Moderators.Any(x => x.Id == moderatorId))
-            throw new NotFoundException("Moderator not found");
-
-        building.Moderators.Remove(moderator);
+        foreach (var roomId in roomIds)
+            building.Rooms.Remove(_roomRepository.GetById(roomId) ??
+                throw new NotFoundException("Room not found"));
 
         _unitOfWork.Execute(() => _buildingRepository.Update(building));
 

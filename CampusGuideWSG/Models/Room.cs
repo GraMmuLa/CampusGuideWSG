@@ -9,7 +9,5 @@ public partial class Room
 
     public int Number { get; set; }
 
-    public int BuildingId { get; set; }
-
-    public virtual Building Building { get; set; } = null!;
+    public virtual List<Building> Buildings { get; set; } = [];
 }

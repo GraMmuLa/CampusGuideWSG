@@ -31,19 +31,19 @@ public class RoomRepository : IRoomRepository
     public Room? GetById(int id)
     {
         return _dbContext.Rooms
-            .Include(r => r.Building)
+            .Include(r => r.Buildings)
             .FirstOrDefault(r => r.Id == id);
     }
 
     public Room? GetByNumber(int number)
     {
         return _dbContext.Rooms
-            .Include(r => r.Building)
+            .Include(r => r.Buildings)
             .FirstOrDefault(r => r.Number == number);
     }
 
     public IList<Room> GetAll()
     {
-        return [.. _dbContext.Rooms.Include(r => r.Building)];
+        return [.. _dbContext.Rooms.Include(r => r.Buildings)];
     }
 }

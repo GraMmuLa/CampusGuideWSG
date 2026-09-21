@@ -136,39 +136,36 @@ public class ModeratorService : IModeratorService
         return [.._moderatorRepository.GetAll().Select(ModeratorDto.FromModel)];
     }
 
-    public ModeratorDto AddBuilding(int moderatorId, int buildingId)
+    public ModeratorDto AddBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
             throw new NotFoundException("Moderator not found");
 
-        Building building = _buildingRepository.GetById(buildingId) ??
-            throw new NotFoundException("Building not found");
-
-        if (moderator.Buildings.Any(x => x.Id == buildingId))
+        if (buildingIds.Any(x => moderator.Buildings.Select(x => x.Id).Contains(x)))
             throw new UniquePropertyException("Building is already assigned to this moderator");
 
-        moderator.Buildings.Add(building);
+        foreach (var buildingId in buildingIds)
+            moderator.Buildings.Add(_buildingRepository.GetById(buildingId) ??
+                throw new NotFoundException("Building not found"));
 
-        _unitOfWork.Execute(() => _buildingRepository.Update(building));
+        _unitOfWork.Execute(() => _moderatorRepository.Update(moderator));
 
-        return ModeratorDto.FromModel(_moderatorRepository.GetById(moderatorId) ??
-            throw new NotFoundException("Moderator not found"));
+        return ModeratorDto.FromModel(_moderatorRepository.GetById(moderatorId)!);
     }
 
-    public ModeratorDto RemoveBuilding(int moderatorId, int buildingId)
+    public ModeratorDto RemoveBuildings(int moderatorId, ICollection<int> buildingIds)
     {
         Moderator moderator = _moderatorRepository.GetById(moderatorId) ??
             throw new NotFoundException("Moderator not found");
 
-        Building building = _buildingRepository.GetById(buildingId) ??
-            throw new NotFoundException("Building not found");
+        if (buildingIds.Any(x => !moderator.Buildings.Select(x=>x.Id).Contains(x)))
+            throw new NotFoundException($"Building is not assigned to this moderator");
 
-        if (!moderator.Buildings.Any(x => x.Id == buildingId))
-            throw new NotFoundException("Moderator not found");
+        foreach (var buildingId in buildingIds)
+            moderator.Buildings.Remove(_buildingRepository.GetById(buildingId) ??
+                throw new NotFoundException("Building not found"));
 
-        moderator.Buildings.Remove(building);
-
-        _unitOfWork.Execute(() => _buildingRepository.Update(building));
+        _unitOfWork.Execute(() => _moderatorRepository.Update(moderator));
 
         return ModeratorDto.FromModel(_moderatorRepository.GetById(moderatorId)!);
     }

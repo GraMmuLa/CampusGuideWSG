@@ -12,6 +12,6 @@ public interface IModeratorService
     ModeratorDto GetById(int id);
     ModeratorDto GetByUsername(string username);
     IList<ModeratorDto> GetAll();
-    ModeratorDto AddBuilding(int moderatorId, int buildingId);
-    ModeratorDto RemoveBuilding(int moderatorId, int buildingId);
+    ModeratorDto AddBuildings(int moderatorId, ICollection<int> buildingIds);
+    ModeratorDto RemoveBuildings(int moderatorId, ICollection<int> buildingIds);
 }

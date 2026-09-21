@@ -144,23 +144,33 @@ public partial class AppDbContext : DbContext
 
             entity.ToTable("rooms");
 
-            entity.HasIndex(e => e.BuildingId, "ROOMS_BUILDINGS_FK");
-
             entity.HasIndex(e => e.Number, "ROOMS_NUMBER_IX").IsUnique();
 
             entity.Property(e => e.Id)
                 .HasColumnType("int(11)")
                 .HasColumnName("id");
-            entity.Property(e => e.BuildingId)
-                .HasColumnType("int(11)")
-                .HasColumnName("building_id");
             entity.Property(e => e.Number)
                 .HasColumnType("int(3)")
                 .HasColumnName("number");
 
-            entity.HasOne(d => d.Building).WithMany(p => p.Rooms)
-                .HasForeignKey(d => d.BuildingId)
-                .HasConstraintName("ROOMS_BUILDINGS_FK");
+            entity.HasMany(e => e.Buildings)
+            .WithMany(p => p.Rooms)
+            .UsingEntity<Dictionary<string, object>>(
+                "buildings_floors",
+                l => l.HasOne<Building>().WithMany().HasForeignKey("building_id")
+                    .HasConstraintName("ROOMS_BUILDINGS_BUILDINGS_FK"),
+                r => r.HasOne<Room>().WithMany().HasForeignKey("room_id")
+                    .HasConstraintName("ROOMS_BUILDINGS_ROOMS_FK"),
+                j =>
+                {
+                    j.ToTable("rooms_buildings");
+
+                    j.HasIndex("room_id", "building_id").IsUnique()
+                        .HasDatabaseName("ROOMS_BUILDINGS_IX");
+
+                    j.HasKey("room_id", "building_id");
+                }
+            );
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -141,17 +141,17 @@ public class BuildingsController : ControllerBase
     }
 
     /// <summary>
-    /// Add a moderator to Building
+    /// Add a rooms to Building
     /// </summary>
     /// <param name="buildingId"></param>
-    /// <param name="moderatorId"></param>
+    /// <param name="roomIds"></param>
     /// <returns>Building Dto</returns>
-    [HttpPost("/add-moderator")]
-    public ActionResult<BuildingDto> AddModerator([FromQuery] int buildingId, [FromQuery] int moderatorId)
+    [HttpPost("/add-rooms")]
+    public ActionResult<BuildingDto> AddRooms(int buildingId, ICollection<int> roomIds)
     {
         try
         {
-            BuildingDto buildingDto = _service.AddModerator(buildingId, moderatorId);
+            BuildingDto buildingDto = _service.AddRooms(buildingId, roomIds);
             return Ok(buildingDto);
         }
         catch(NotFoundException ex)
@@ -162,20 +162,28 @@ public class BuildingsController : ControllerBase
                 Title = ex.Message
             });
         }
+        catch(UniquePropertyException ex)
+        {
+            return Conflict(new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = ex.Message
+            });
+        }
     }
 
     /// <summary>
-    /// Remove a moderator from Building
+    /// Remove a rooms from Building
     /// </summary>
     /// <param name="buildingId"></param>
-    /// <param name="moderatorId"></param>
+    /// <param name="roomIds"></param>
     /// <returns>Building Dto</returns>
-    [HttpPost("/remove-moderator")]
-    public ActionResult<BuildingDto> RemoveModerator([FromQuery] int buildingId, [FromQuery] int moderatorId)
+    [HttpDelete("/remove-rooms")]
+    public ActionResult<BuildingDto> RemoveRooms(int buildingId, ICollection<int> roomIds)
     {
         try
         {
-            BuildingDto buildingDto = _service.RemoveModerator(buildingId, moderatorId);
+            BuildingDto buildingDto = _service.RemoveRooms(buildingId, roomIds);
             return Ok(buildingDto);
         }
         catch (NotFoundException ex)
